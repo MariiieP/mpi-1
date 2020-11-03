@@ -33,52 +33,44 @@ int main(int argc, char * argv[]){
 
 //   № 1
     char message[24];
-    int myrank,numprocs;
+    int myrank,slot;
     int TAG=0;
     int sizePartOfVector;
     MPI_Status status;
     MPI_Init(&argc,&argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-    if (numprocs<3) MPI_Abort(MPI_COMM_WORLD,0); // Нужно мининмум 3 процесса
+    MPI_Comm_size(MPI_COMM_WORLD, &slot);
+    if (slot<3) MPI_Abort(MPI_COMM_WORLD,0); // Нужно мининмум 3 процесса
     MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
     if(myrank==0)
     {
-        int N=5;
+        sizePartOfVector = ((slot-1)/2); // размерность кусков вектора
 
-        sizePartOfVector = N/((numprocs-1)/2); // размерность кусков вектора
+//        int numprocs2 = 5;
+//        int m2;
+//        m2 = (6-1)%2;
+//        printf("m, numprocs, myrank: %d, %d, %d\n",m2, numprocs2, sizePartOfVector);
+        printf("m, numprocs, myrank: %d, %d, %d\n",sizePartOfVector, slot, myrank);
 
-        int numprocs2 = 5;
-        int m2;
-        m2 = N/((numprocs2-1)/2);
-        printf("m, numprocs, myrank: %d, %d, %d\n",m2, numprocs2, sizePartOfVector);
-        if (N % sizePartOfVector != 0) {
-            sizePartOfVector-=(2*sizePartOfVector+1); // увеличить размерность и изменить знак, если N нацело не делится на m
-        }
-        printf("sizePartOfVector : %d\n", sizePartOfVector);
-
-//        printf("m, numprocs, myrank: %d, %d, %d\n",sizePartOfVector, numprocs, myrank);
-
-        for (int i=1;i<=numprocs-1-(numprocs-1)%2;i++) {
-            printf("11111: \n");
+        int cntSend = slot%2 == 0 ? slot-2 : slot-1;
+        for (int i=1;i<=cntSend;i++) {
             MPI_Send(&sizePartOfVector,1,MPI_INT,i,TAG,MPI_COMM_WORLD);
         }
 
         int tmp_res,res=0;
-        for (int i=1;i<=(numprocs-1)/2;i++)
+        for (int i=1;i<=(slot-1)/2;i++)
         {
-            printf("222: \n");
             MPI_Recv(&tmp_res,1,MPI_INT,MPI_ANY_SOURCE,TAG,MPI_COMM_WORLD,&status);
             res += tmp_res;
         }
         printf("Result: %d\n",res);
     }
-    else if ((numprocs-1)%2==0 || myrank!=numprocs-1) // если я - не последний и нечетный, которому нет работы
+    else if ((slot-1)%2==0 || myrank!=slot-1) // если я - не последний и нечетный, которому нет работы
     {
-        printf("_______________:    %d\n",numprocs);
+        printf("_______________slot, myrank:  %d,  %d\n",slot, myrank);
         MPI_Recv(&sizePartOfVector,1,MPI_INT,0,TAG,MPI_COMM_WORLD,&status);
         bool not_full = sizePartOfVector<0 &&
-            (myrank==numprocs-1-(numprocs-1)%2 // я - последний процесс
-            || myrank==numprocs-2-(numprocs-1)%2); // или я - предпоследний процесс
+            (myrank==slot-1-(slot-1)%2 // я - последний процесс
+            || myrank==slot-2-(slot-1)%2); // или я - предпоследний процесс
         sizePartOfVector=abs(sizePartOfVector);
         int *x;
         x=new int[sizePartOfVector];
@@ -104,7 +96,7 @@ int main(int argc, char * argv[]){
             strncat(str,", ",2);
 
         }
-        printf("%s\n",str);
+//        printf("%s\n",str);
         if (myrank%2==0) {// если я - А, отправляю свой вектор процессу, у которого кусок В
 //            printf("_________________________str2: %d, %d, %d, %d\n",x[0], x[1], x[2], x[3]);
             MPI_Send(&x,sizePartOfVector,MPI_INT,myrank-1,TAG,MPI_COMM_WORLD);
@@ -112,13 +104,13 @@ int main(int argc, char * argv[]){
         else // если я - В, перемножаю и отправляю мастеру
         {
             int *y;
-            printf("_________________________ x: %d, %d, %d, %d\n",x[0], x[1], x[2], x[3]);
+//            printf("_________________________ x: %d, %d, %d, %d\n",x[0], x[1], x[2], x[3]);
             MPI_Recv(&y,sizePartOfVector,MPI_INT,myrank+1,TAG,MPI_COMM_WORLD,&status);
-            printf("_________________________y: %d, %d, %d, %d\n",y[0], y[1], y[2], y[3]);
+//            printf("_________________________y: %d, %d, %d, %d\n",y[0], y[1], y[2], y[3]);
             int res=0;
             for (int i=0;i<sizePartOfVector;i++)
                 res += x[i]*y[i];
-            printf("_________________________res: %d, %d, %d, %d\n",x[0], x[1], x[2], x[3]);
+//            printf("_________________________res: %d, %d, %d, %d\n",x[0], x[1], x[2], x[3]);
             MPI_Ssend(&res,1,MPI_INT,0,TAG,MPI_COMM_WORLD);
         }
     }
