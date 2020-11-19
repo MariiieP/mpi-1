@@ -17,15 +17,17 @@
 //    MPI_Comm_size(MPI_COMM_WORLD, &slot);
 //    if (slot<3) MPI_Abort(MPI_COMM_WORLD,0);
 //    MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+//
 //    if(myrank==0) {
-//        sizePartOfVector = ((slot-1)/2);
+//        int cntSlotBySum = ((slot-1)/2);
+//        sizePartOfVector = cntSlotBySum;
 //        int cntSend = slot%2 == 0 ? slot-2 : slot-1;
 //        for (int i=1;i<=cntSend;i++) {
 //            MPI_Send(&sizePartOfVector,1,MPI_INT,i,0,MPI_COMM_WORLD);
 //        }
 //
 //        int tmpRes,result=0;
-//        for (int i=1;i<=(slot-1)/2;i++) {
+//        for (int i=1;i<=cntSlotBySum;i++) {
 //            MPI_Recv(&tmpRes,1,MPI_INT,MPI_ANY_SOURCE,0,MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 //            result += tmpRes;
 //        }
@@ -44,8 +46,8 @@
 //        } else {
 //            int y[sizePartOfVector];
 //            MPI_Recv(&y,sizePartOfVector,MPI_INT,myrank+1,0,MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-////            printf("y: %d, %d\n",y[0], y[1]);
-////            printf("x: %d, %d\n",x[0], x[1]);
+//            printf("y: %d, %d\n",y[0], y[1]);
+//            printf("x: %d, %d\n",x[0], x[1]);
 //            int result=0;
 //            for (int i=0;i<sizePartOfVector;i++)
 //            result += x[i]*y[i];
@@ -91,7 +93,7 @@
 //        float A=0,B=0;
 //        A = 0;
 //        B = 0.99;
-//        e = 0.01;
+//        e = 0.0001;
 //        n = 6;
 ////            double A1,B1;
 ////            std::cout<<"ENTER A and B\n";
@@ -123,26 +125,25 @@
 //    MPI_Bcast(&e,1,MPI_FLOAT,0,MPI_COMM_WORLD);
 //    MPI_Bcast(&n,1,MPI_INT,0,MPI_COMM_WORLD);
 //
-//    int add = (int)(n % slot != 0);
-//    readX=new float[n/slot+add];
-//    sendRes=new float[2*(n/slot+add)];
-//    readRes=new float[2*n];
+//    readX=new float[n/slot];
+//    sendRes=new float[2*(n/slot)];
+//    readRes=new float[2*(n/slot)];
 //
-//    MPI_Scatter(sendX,n/slot+add,MPI_FLOAT,readX,n/slot+add,MPI_FLOAT,0,MPI_COMM_WORLD);
+//    MPI_Scatter(sendX,n/slot,MPI_FLOAT,readX,n/slot,MPI_FLOAT,0,MPI_COMM_WORLD);
 //
 //    float x;
-//    for (int i=0;i<n/slot+add;i++)
+//    for (int i=0;i<n/slot;i++)
 //    {
 //        x=readX[i];
 //        sendRes[2*i]=Sum_series(x,e);
 //        sendRes[2*i+1]=1/pow(1+x, 3);
 //    }
 //
-//    MPI_Gather(sendRes,2*(n/slot+add),MPI_FLOAT,readRes,2*(n/slot+add),MPI_FLOAT,0,MPI_COMM_WORLD);
+//    MPI_Gather(sendRes,2*(n/slot),MPI_FLOAT,readRes,2*(n/slot),MPI_FLOAT,0,MPI_COMM_WORLD);
 //
 //    if (myrank==0)
 //    {
-//        printf("x\t\t\tSumma\t\tExact value\n");
+//        printf("x\t\t\tSum_series\t\tSumma\n");
 //        for (int i=0; i<n;i++)
 //            printf("%f\t%f\t%f\n",sendX[i],readRes[2*i],readRes[2*i+1]);
 //    }
@@ -154,7 +155,7 @@
 
 
 //   № 3
-void findmax ( int * invec, int * inoutvec, int * len, MPI_Datatype *dtype)
+void GetMinPowerOfTwoLargerThan ( int * invec, int * inoutvec, int * len, MPI_Datatype *dtype)
 {
     for (int i=0;i<*len;i++)
     {
@@ -167,32 +168,21 @@ void findmax ( int * invec, int * inoutvec, int * len, MPI_Datatype *dtype)
 
 int main(int argc, char* argv[])
 {
-    const int n=5;
+    const int n=4;
     int rank,size,data[n],result[n];
-    MPI_Op op1;
+    MPI_Op myOp;
     MPI_Init(&argc,&argv);
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
-    srand(time(NULL));
-    char str[100]="Process: ";
-    char buf[5];
-    snprintf(buf, sizeof(buf), "%d", rank);
-//    itoa(rank,buf,10);
-    strncat(str,buf,strlen(buf));
-    strncat(str," array: ",8);
     for (int i=0;i<n;i++)
     {
-        data[i] = (rand()*(rank+1)-rand()*2)%129; //диапазон от -128 до 128
-        snprintf(buf, sizeof(buf), "%d", rank);
-//        itoa(data[i],buf,10);
-        strncat(str,buf,strlen(buf));
-        strncat(str,", ",2);
+        data[i] = (rand()*(rank))%20;
         result[i]=0;
     }
-    printf("момп %s\n",str);
-    MPI_Op_create((MPI_User_function *)findmax,1,&op1);
-    MPI_Reduce (&data,&result, n, MPI_INT, op1, 0, MPI_COMM_WORLD);
-    MPI_Op_free(&op1);
+    printf(": %d, %d, %d, %d\n",data[0],data[1],data[2],data[3]);
+    MPI_Op_create((MPI_User_function *)GetMinPowerOfTwoLargerThan,true,&myOp);
+    MPI_Reduce (&data,&result, n, MPI_INT, myOp, 0, MPI_COMM_WORLD);
+    MPI_Op_free(&myOp);
     if (rank==0)
     {
         printf("Result: ");
@@ -202,4 +192,3 @@ int main(int argc, char* argv[])
     MPI_Finalize();
     return 0;
 }
-
