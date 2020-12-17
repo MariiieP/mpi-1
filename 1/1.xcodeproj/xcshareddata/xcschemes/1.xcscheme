@@ -55,7 +55,7 @@
       </MacroExpansion>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-n 5"
+            argument = "-n 2"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
