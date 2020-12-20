@@ -257,7 +257,7 @@
 //}
 
 
-// Вариант 3. min(Sum(aik*bkj)) (в методичке опечатка)
+// Вариант 23. min(Sum(aik*bkj)) (в методичке опечатка)
 #include <stdio.h>
 #include <mpi.h>
 #include <time.h>
@@ -266,14 +266,6 @@
 
 #define dimension 1//размерность декартовой решетки
 
-//вычисления максимального произведения соответствующих элементов строк
-int calc_sum(int *a,int *b, int len)
-{
-    int sum = 0;
-    for (int i=0;i<len;i++)
-        sum+=a[i]*b[i];
-    return sum;
-}
 
 int min_series(int *a,int *b, int len)
 {
@@ -346,7 +338,6 @@ int main(int argc,char *argv[])
         strncat(str,"  ",2);
     }
     strncat(str,"]\nResults:\n   2sum(A[",22);
-//    itoa(rank,buf,10);
     snprintf(buf, sizeof(buf), "%d", rank);
     strncat(str,buf,strlen(buf));
     strncat(str,",k]*B[k,0]) = ",14);
@@ -367,22 +358,18 @@ int main(int argc,char *argv[])
         if (current<min) min=current; // вычисление минимума
         // печать sum(A[i,k]*B[k,j]) = current
         strncat(str,"   1sum(A[",9);
-//        itoa(rank,buf,10);
         snprintf(buf, sizeof(buf), "%d", rank);
         strncat(str,buf,strlen(buf));
         strncat(str,",k]*B[k,",8);
-//        itoa(j,buf,10);
         snprintf(buf, sizeof(buf), "%d", j);
         strncat(str,buf,strlen(buf));
         strncat(str,"]) = ",5);
-//        itoa(current,buf,10);
         snprintf(buf, sizeof(buf), "%d", current);
         strncat(str,buf,strlen(buf));
         strncat(str,"\n",2);
     }
     // печать результата
     strncat(str," Minimum = ",11);
-//    itoa(min,buf,10);
     snprintf(buf, sizeof(buf), "%d", min);
     strncat(str,buf,strlen(buf));
     strncat(str,"\n",2);
