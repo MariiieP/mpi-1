@@ -14,8 +14,8 @@
             filePath = "1/main.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "73"
-            endingLineNumber = "73"
+            startingLineNumber = "80"
+            endingLineNumber = "80"
             landmarkName = "Sum_series(x, eps)"
             landmarkType = "9">
          </BreakpointContent>
