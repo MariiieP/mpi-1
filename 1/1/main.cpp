@@ -190,8 +190,8 @@
 // mmmmmm
 // m    m
 // mmmmmm
-//#define cntRow 5
-//#define cntCol 5
+//#define cntRow 7
+//#define cntCol 7
 //void printMatrix(int (*arr)[cntCol], int num)
 //{
 //    char message[200] = "Matrix ";
@@ -217,44 +217,16 @@
 //    MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
 //    MPI_Comm_size(MPI_COMM_WORLD, &slot);
 //
-//    int N = 0;
-//    int tail = 2;
-//    if (cntCol > cntRow) {
-//        N = cntRow +1;
-//        tail = 1;
-//    } else if (cntCol < cntRow) {
-//        N = cntCol +1;
-//    } else {
-//        N = (cntRow-3)*2 +3;
-//    }
-//
-//    int blocklength[N-1];
-//    int displacement[N-1];
+//    int blocklength[cntRow-1];
+//    int displacement[cntRow-1];
 //
 //    blocklength[0]=cntCol+1;
-//    for (int i=1;i<N-1;i++) {
-//        blocklength[i]=1;
-//    }
-//
-//    blocklength[N-2]=1;
-//    blocklength[N-3]=tail;
-//
-//
-//
+//    for (int i=1;i<cntRow-2;i++)
+//        blocklength[i]=2;
+//    blocklength[cntRow-2]=cntCol+1;
 //    displacement[0]=0;
-//
-//    int row = 2;
-//    for (int i=2;i<N-1;i+=2) {
-//        displacement[i-1]=row*cntCol-row;
-//        displacement[i]=row*cntCol;
-//        row++;
-//    }
-//    displacement[N-2]=16;
-//    displacement[N-1]=19;
-//    printf("%d %d %d %d %d %d %d %d %d %d %d \n", blocklength[0], blocklength[1], blocklength[2], blocklength[3], blocklength[4], blocklength[5], blocklength[6], blocklength[7]
-//           , blocklength[8], blocklength[9], blocklength[10]);
-//    printf("%d %d %d %d %d %d %d \n", displacement[0], displacement[1], displacement[2], displacement[3], displacement[4], displacement[5], displacement[6]);
-//
+//    for (int i=1;i<cntRow-1;i++)
+//        displacement[i]=(i+1)*cntCol-1;
 //
 //    MPI_Datatype My_Type;
 //    MPI_Type_indexed(cntRow-1,blocklength,displacement,MPI_INT,&My_Type);
@@ -283,6 +255,7 @@
 //
 //    return 0;
 //}
+
 
 //Две матрицы nxn распределены между процессами. Каждый процесс генерирует строку матрицы А и столбец матрицы В.
 //Память отводится только для строки А и столбца В. Для вычисления по формуле процесс использует свою строку матрицы А,
